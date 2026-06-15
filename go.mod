@@ -1,4 +1,4 @@
-module github.com/bboyrankingz/elastic
+module github.com/leboncoin/elastic
 
 go 1.17
 
