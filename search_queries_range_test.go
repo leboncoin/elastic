@@ -21,7 +21,7 @@ func TestRangeQuery(t *testing.T) {
 		t.Fatalf("marshaling to JSON failed: %v", err)
 	}
 	got := string(data)
-	expected := `{"range":{"_name":"my_query","postDate":{"boost":3,"from":"2010-03-01","include_lower":true,"include_upper":true,"relation":"within","to":"2010-04-01"}}}`
+	expected := `{"range":{"_name":"my_query","postDate":{"boost":3,"gte":"2010-03-01","lte":"2010-04-01","relation":"within"}}}`
 	if got != expected {
 		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
 	}
@@ -41,7 +41,7 @@ func TestRangeQueryWithTimeZone(t *testing.T) {
 		t.Fatalf("marshaling to JSON failed: %v", err)
 	}
 	got := string(data)
-	expected := `{"range":{"born":{"from":"2012-01-01","include_lower":true,"include_upper":true,"time_zone":"+1:00","to":"now"}}}`
+	expected := `{"range":{"born":{"gte":"2012-01-01","lte":"now","time_zone":"+1:00"}}}`
 	if got != expected {
 		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
 	}
@@ -61,7 +61,58 @@ func TestRangeQueryWithFormat(t *testing.T) {
 		t.Fatalf("marshaling to JSON failed: %v", err)
 	}
 	got := string(data)
-	expected := `{"range":{"born":{"format":"yyyy/MM/dd","from":"2012/01/01","include_lower":true,"include_upper":true,"to":"now"}}}`
+	expected := `{"range":{"born":{"format":"yyyy/MM/dd","gte":"2012/01/01","lte":"now"}}}`
+	if got != expected {
+		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
+	}
+}
+
+func TestRangeQueryWithExclusiveBounds(t *testing.T) {
+	q := NewRangeQuery("score").Gt(10).Lt(100)
+	src, err := q.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(src)
+	if err != nil {
+		t.Fatalf("marshaling to JSON failed: %v", err)
+	}
+	got := string(data)
+	expected := `{"range":{"score":{"gt":10,"lt":100}}}`
+	if got != expected {
+		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
+	}
+}
+
+func TestRangeQueryWithMixedBounds(t *testing.T) {
+	q := NewRangeQuery("price").Gt(50.0).Lte(200.0)
+	src, err := q.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(src)
+	if err != nil {
+		t.Fatalf("marshaling to JSON failed: %v", err)
+	}
+	got := string(data)
+	expected := `{"range":{"price":{"gt":50,"lte":200}}}`
+	if got != expected {
+		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
+	}
+}
+
+func TestRangeQueryWithSingleBound(t *testing.T) {
+	q := NewRangeQuery("age").Gte(18)
+	src, err := q.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(src)
+	if err != nil {
+		t.Fatalf("marshaling to JSON failed: %v", err)
+	}
+	got := string(data)
+	expected := `{"range":{"age":{"gte":18}}}`
 	if got != expected {
 		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
 	}
